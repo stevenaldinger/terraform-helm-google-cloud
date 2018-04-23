@@ -1,0 +1,15 @@
+# Values for "vpn" namespace in k8s cluster.
+
+# ----------------------- [START] openvpn configuration ---------------------- #
+openvpn:
+  name: openvpn
+  configFile: "openvpn.conf"
+  service:
+    loadBalancerIP: 35.185.67.xxx
+  env:
+    caCommonName: vpn.stevenaldinger.com
+    caPassphrase: sensitive-password!
+  image:
+    repository: gcr.io/steven-aldinger/demo-app/vpn
+    version: 0.0.1
+# ------------------------ [END] openvpn configuration ----------------------- #

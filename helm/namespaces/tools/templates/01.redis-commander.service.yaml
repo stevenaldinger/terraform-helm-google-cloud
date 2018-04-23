@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.rediscommander.name }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.rediscommander.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.rediscommander.labels.tier }}
+spec:
+  type: {{ .Values.rediscommander.service.type }}
+  {{- if .Values.rediscommander.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.rediscommander.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+  - port: {{ .Values.rediscommander.externalPortHTTP }}
+    targetPort: {{ .Values.rediscommander.internalPortHTTP }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ template "name" . }}
+    component: "{{ .Values.rediscommander.name }}"
+    release: {{ .Release.Name }}

@@ -1,0 +1,131 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "openvpn.fullname" . }}
+  namespace: {{ .Values.openvpn.namespace }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.openvpn.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.openvpn.labels.tier }}
+spec:
+  replicas: {{ .Values.openvpn.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.openvpn.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.openvpn.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.openvpn.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "openvpn.fullname" . }}
+      namespace: {{ .Values.openvpn.namespace }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.openvpn.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.openvpn.labels.tier }}
+    spec:
+      # initContainers:
+      # - name: "remove-lost-found"
+      #   image: "{{ .Values.initContainerImage }}"
+      #   imagePullPolicy: {{ .Values.openvpn.image.pullPolicy }}
+      #   command:
+      #   - "rm"
+      #   - "-rf"
+      #   - "{{ .Values.openvpn.persistence.mountPath }}/lost+found"
+      #   volumeMounts:
+      #   - mountPath: {{ .Values.openvpn.persistence.mountPath | quote }}
+      #     name: postfix-volume
+      containers:
+      - name: {{ .Values.openvpn.name }}
+        image: "{{ .Values.openvpn.image.repository }}:{{ .Values.openvpn.image.version }}"
+        imagePullPolicy: {{ .Values.openvpn.image.pullPolicy }}
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+        ports:
+        - containerPort: {{ .Values.openvpn.internalPortDNS }}
+          name: dns
+          protocol: UDP
+        - containerPort: {{ .Values.openvpn.internalPortUDP }}
+          name: udp
+          protocol: UDP
+        env:
+        - name: CA_COMMON_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "openvpn.fullname" . }}
+              key: ca-common-name
+        - name: CA_PASSPHRASE
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "openvpn.fullname" . }}
+              key: ca-passphrase
+        - name: OPENVPN_ENABLED
+          value: 'true'
+        - name: PRIVOXY_ENABLED
+          value: 'false'
+        - name: REDSOCKS_ENABLED
+          value: 'true'
+        - name: TOR_ENABLED
+          value: 'true'
+        - name: PDNSD_ENABLED
+          value: 'true'
+        - name: OPENVPN_SOCKS
+          value: 'true'
+        # resources:
+        #   limits:
+        #     cpu: "0.02"
+        #     memory: 90Mi
+        #   requests:
+        #     cpu: "0.02"
+        #     memory: 90Mi
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config/mounted_files
+          # /config/mounted_files/openvpn.conf
+        - name: vpn-data
+          mountPath: /etc/openvpn
+      volumes:
+      - name: vpn-data
+        gcePersistentDisk:
+          pdName: {{ .Values.openvpn.env.diskName }}
+          fsType: ext4
+      - name: config-volume
+        configMap:
+          # Provide the name of the ConfigMap containing the files you want
+          # to add to the container
+          name: vpn-conf
+
+        # {{- if .Values.openvpn.readinessProbe }}
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: {{ .Values.openvpn.internalPortUDP }}
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+        # {{- end }}
+        # {{- if .Values.openvpn.livelinessProbe }}
+        # livenessProbe:
+        #   tcpSocket:
+        #     port: {{ .Values.openvpn.internalPortUDP }}
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # {{- end }}
+      #   volumeMounts:
+      #   - mountPath: {{ .Values.openvpn.persistence.mountPath | quote }}
+      #     name: {{ .Values.openvpn.name }}-volume
+      # volumes:
+      # - name: {{ .Values.openvpn.name }}-volume
+      # {{- if .Values.openvpn.persistence.enabled }}
+      #   persistentVolumeClaim:
+      #     claimName: {{ template "openvpn.fullname" . }}
+      # {{- else }}
+      #   emptyDir: {}
+      # {{- end -}}

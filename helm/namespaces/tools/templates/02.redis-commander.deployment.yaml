@@ -1,0 +1,44 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "rediscommander.fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.rediscommander.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.rediscommander.labels.tier }}
+spec:
+  replicas: {{ .Values.rediscommander.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.rediscommander.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.rediscommander.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.rediscommander.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "rediscommander.fullname" . }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.rediscommander.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.rediscommander.labels.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.rediscommander.name }}
+        image: "{{ .Values.rediscommander.image.repository }}:{{ .Values.rediscommander.image.version }}"
+        imagePullPolicy: {{ .Values.rediscommander.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.rediscommander.internalPortHTTP }}
+          name: http
+          protocol: TCP
+        env:
+        - name: REDIS_HOSTS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "rediscommander.fullname" . }}
+              key: redis-hosts

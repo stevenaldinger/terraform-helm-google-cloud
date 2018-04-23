@@ -1,0 +1,16 @@
+apiVersion: v1
+name: openvpn
+home: https://openvpn.net/
+version: 0.0.1
+appVersion: 0.0.1
+description: OpenVPN is an open-source software application that implements virtual private network (VPN) techniques for creating secure point-to-point or site-to-site connections in routed or bridged configurations and remote access facilities.
+keywords:
+- openvpn
+- vpn
+sources:
+- https://github.com/OpenVPN
+- https://github.com/vdukhovni/postfix
+maintainers:
+- name: stevenaldinger
+  email: stevenaldinger@gmail.com
+icon: https://raw.githubusercontent.com/dperson/openvpn-client/master/logo.png

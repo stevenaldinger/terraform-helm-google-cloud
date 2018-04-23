@@ -1,0 +1,83 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "adminer.fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.adminer.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.adminer.labels.tier }}
+spec:
+  replicas: {{ .Values.adminer.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.adminer.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.adminer.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.adminer.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "adminer.fullname" . }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.adminer.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.adminer.labels.tier }}
+    spec:
+      volumes:
+      - name: ssl
+        hostPath:
+          path: /etc/ssl/certs/ca-certificates.crt
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
+      - name: cloudsql
+        emptyDir: {}
+      containers:
+      - name: cloudsql-proxy
+        image: "gcr.io/cloudsql-docker/gce-proxy:1.11"
+        command: ["/cloud_sql_proxy",
+                  "-instances={{ .Values.adminer.env.dbInstanceConnection }}",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+        - name: cloudsql-instance-credentials
+          mountPath: /secrets/cloudsql
+          readOnly: true
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "adminer.fullname" . }}
+              key: db-name
+        - name: GOOGLE_CLOUD_PROJECT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "adminer.fullname" . }}
+              key: gcp-project
+      - name: {{ .Values.adminer.name }}
+        image: "{{ .Values.adminer.image.repository }}:{{ .Values.adminer.image.version }}"
+        imagePullPolicy: {{ .Values.adminer.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.adminer.internalPortHTTP }}
+          name: http
+          protocol: TCP
+        env:
+        - name: ADMINER_DESIGN
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "adminer.fullname" . }}
+              key: adminer-design
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-instance-credentials
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-instance-credentials
+              key: db-pass

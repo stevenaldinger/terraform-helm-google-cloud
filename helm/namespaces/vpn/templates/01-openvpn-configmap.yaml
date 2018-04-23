@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "openvpn.fullname" . }}
+  namespace: {{ .Values.openvpn.namespace }}
+data:
+  ca-common-name: {{ .Values.openvpn.env.caCommonName }}

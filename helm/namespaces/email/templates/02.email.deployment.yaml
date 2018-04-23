@@ -1,0 +1,56 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "email.fullname" . }}
+  namespace: {{ .Values.email.namespace }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.email.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.email.labels.tier }}
+spec:
+  replicas: {{ .Values.email.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.email.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.email.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.email.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "email.fullname" . }}
+      namespace: {{ .Values.email.namespace }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.email.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.email.labels.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.email.name }}
+        image: "{{ .Values.email.image.repository }}:{{ .Values.email.image.version }}"
+        imagePullPolicy: {{ .Values.email.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.email.internalPortSMTP }}
+          name: smtp
+          protocol: TCP
+        env:
+        - name: MY_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "email.fullname" . }}
+              key: my-domain
+        - name: SMTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "email.fullname" . }}
+              key: smtp-user
+        - name: SMTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "email.fullname" . }}
+              key: smtp-pass

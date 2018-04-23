@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{.Release.Name}}"
+  labels:
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{.Release.Name}}"
+      labels:
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: {{ .Values.openvpn.name }}
+        image: "{{ .Values.openvpn.image.repository }}:{{ .Values.openvpn.image.version }}"
+        command: ["/bin/sh", "-c", "ovpn_genconfig -u udp://$CA_COMMON_NAME; ovpn_initpki"]
+        imagePullPolicy: {{ .Values.openvpn.image.pullPolicy }}
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+        ports:
+        - containerPort: {{ .Values.openvpn.internalPortDNS }}
+          name: dns
+          protocol: UDP
+        - containerPort: {{ .Values.openvpn.internalPortUDP }}
+          name: udp
+          protocol: UDP
+        env:
+        - name: CA_COMMON_NAME
+          value: {{ .Values.openvpn.env.caCommonName }}
+        - name: CA_PASSPHRASE
+          value: {{ .Values.openvpn.env.caPassphrase }}
+        volumeMounts:
+        - name: vpn-data
+          mountPath: /etc/openvpn
+      volumes:
+      - name: vpn-data
+        gcePersistentDisk:
+          pdName: {{ .Values.openvpn.env.diskName }}
+          fsType: ext4

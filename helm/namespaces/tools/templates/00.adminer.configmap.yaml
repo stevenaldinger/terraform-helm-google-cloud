@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "adminer.fullname" . }}
+data:
+  adminer-design: {{ .Values.adminer.env.adminerDesign }}
+  db-name: {{ .Values.adminer.env.dbName }}
+  gcp-project: "{{ .Values.adminer.env.gcpProject }}"
+  dbInstanceConnection: "{{ .Values.adminer.env.dbInstanceConnection }}"

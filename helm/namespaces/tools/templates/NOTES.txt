@@ -1,0 +1,1 @@
+Adminer and redis commander have been installed successfully.

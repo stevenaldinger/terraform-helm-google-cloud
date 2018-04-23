@@ -1,0 +1,21 @@
+# Values for "cache" namespace in k8s cluster.
+
+# ------------------------ [START] redis configuration ----------------------- #
+cache:
+  redis:
+    name: redis
+    replicaCount: 1
+    labels:
+      tier: service
+    externalPortRedis: 6379
+    internalPortRedis: 6379
+    service:
+      type: ClusterIP
+    image:
+      repository: redis
+      version: latest
+      pullPolicy: Always
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+# ------------------------- [END] redis configuration ------------------------ #

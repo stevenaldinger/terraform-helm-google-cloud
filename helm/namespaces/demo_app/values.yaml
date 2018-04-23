@@ -1,0 +1,49 @@
+# demo app values
+
+# --------------------- [START] gui server configuration --------------------- #
+gui:
+  name: demo-app-ui
+  replicaCount: 1
+  labels:
+    tier: frontend
+  externalPortHTTP: "8080"
+  internalPortHTTP: "8080"
+  service:
+    type: ClusterIP
+  env:
+    nodeEnv: production
+  image:
+    repository: gcr.io/steven-aldinger/demo-app/gui
+    version: "0.0.1"
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# ---------------------- [END] gui server configuration ---------------------- #
+
+# --------------------- [START] api server configuration --------------------- #
+api:
+  name: demo-app-api
+  replicaCount: 1
+  labels:
+    tier: frontend
+  externalPortHTTP: "3030"
+  internalPortHTTP: "3030"
+  service:
+    type: ClusterIP
+  env:
+    nodeEnv: production
+  image:
+    repository: gcr.io/steven-aldinger/demo-app/api
+    version: 0.0.1
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# ---------------------- [END] api server configuration ---------------------- #

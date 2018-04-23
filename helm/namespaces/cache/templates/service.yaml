@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.redis.name }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.redis.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.redis.labels.tier }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  {{- if .Values.redis.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.redis.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+  - port: {{ .Values.redis.externalPortRedis }}
+    targetPort: {{ .Values.redis.internalPortRedis }}
+    protocol: TCP
+    name: redis
+  selector:
+    app: {{ template "name" . }}
+    component: "{{ .Values.redis.name }}"
+    release: {{ .Release.Name }}

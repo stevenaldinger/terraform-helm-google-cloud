@@ -1,0 +1,45 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "redis.fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.redis.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.redis.labels.tier }}
+spec:
+  replicas: {{ .Values.redis.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.redis.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.redis.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.redis.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "redis.fullname" . }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.redis.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.redis.labels.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.redis.name }}
+        image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.version }}"
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.redis.internalPortRedis }}
+          name: redis
+          protocol: TCP
+        # resources:
+        #   limits:
+        #     cpu: "0.02"
+        #     memory: 90Mi
+        #   requests:
+        #     cpu: "0.02"
+        #     memory: 90Mi

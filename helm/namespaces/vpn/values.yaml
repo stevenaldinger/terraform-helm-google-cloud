@@ -1,0 +1,48 @@
+# Default values for openvpn.
+# This is a YAML-formatted file.
+
+# Beware when changing values here. You should know what you are doing!
+# Access the values with {{ .Values.key.subkey }}
+
+# Common
+initContainerImage: "busybox:1.26.2"
+
+openvpn:
+  name: openvpn
+  configFile: "openvpn.conf"
+  replicaCount: 1
+  labels:
+    tier: service
+  externalPortDNS: 53
+  internalPortDNS: 53
+  externalPortUDP: 443
+  internalPortUDP: 1194
+  service:
+    type: LoadBalancer
+    loadBalancerIP:
+  env:
+    caCommonName: vpn.stevenaldinger.com
+    caPassphrase: sensitive-password!
+    diskName: example-disk
+  image:
+    repository: gcr.io/steven-aldinger/demo-app/openvpn
+    version: 1.0.0
+    pullPolicy: Always
+  progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  persistence:
+    mountPath: "/etc/openvpn"
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  # resources:
+  #   limits:
+  #     cpu: "0.02"
+  #     memory: 90Mi
+  #   requests:
+  #     cpu: "0.02"
+  #     memory: 90Mi
+  readinessProbe: false
+  livelinessProbe: false

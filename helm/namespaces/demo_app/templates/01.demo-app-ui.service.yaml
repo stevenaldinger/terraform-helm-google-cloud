@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gui.name }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.gui.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.gui.labels.tier }}
+spec:
+  type: {{ .Values.gui.service.type }}
+  {{- if .Values.gui.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.gui.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+  - port: {{ .Values.gui.externalPortHTTP }}
+    targetPort: {{ .Values.gui.internalPortHTTP }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ template "name" . }}
+    component: "{{ .Values.gui.name }}"
+    release: {{ .Release.Name }}

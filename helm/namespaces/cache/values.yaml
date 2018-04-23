@@ -1,0 +1,22 @@
+# Default values for openvpn.
+# This is a YAML-formatted file.
+
+# Beware when changing values here. You should know what you are doing!
+# Access the values with {{ .Values.key.subkey }}
+
+redis:
+  name: redis
+  replicaCount: 1
+  labels:
+    tier: service
+  externalPortRedis: 6379
+  internalPortRedis: 6379
+  service:
+    type: ClusterIP
+  image:
+    repository: redis
+    version: latest
+    pullPolicy: Always
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0

@@ -1,0 +1,45 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "api.fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.api.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.api.labels.tier }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.api.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.api.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.api.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "api.fullname" . }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.api.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.api.labels.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.api.name }}
+        command: ["npm","run","start-prod-api"]
+        image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.version }}"
+        imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.api.internalPortHTTP }}
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "api.fullname" . }}
+              key: node-env

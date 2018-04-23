@@ -1,0 +1,55 @@
+# Values for "tools" namespace in k8s cluster.
+
+# ------------------------------ [START] adminer ----------------------------- #
+adminer:
+  name: adminer
+  replicaCount: 1
+  labels:
+    tier: tools
+  externalPortHTTP: "8080"
+  internalPortHTTP: "8080"
+  service:
+    type: ClusterIP
+  env:
+    dbUsername: admin
+    dbPassword: mydbpass!
+    dbDatabase: demo-app
+    dbInstanceConnection: "steven-aldinger:demo_app=tcp:3306"
+    adminerDesign: nette
+    dbName: demo-app-db
+    gcpProject: steven-aldinger
+  image:
+    repository: adminer
+    version: "4.3.1-standalone"
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# ------------------------------- [END] adminer ------------------------------ #
+
+# -------------------------- [START] redis commander ------------------------- #
+redis-commander:
+  name: redis-commander
+  replicaCount: 1
+  labels:
+    tier: tools
+  externalPortHTTP: "8081"
+  internalPortHTTP: "8081"
+  service:
+    type: ClusterIP
+  env:
+    redisHosts: instance1:redis.cache:6379
+  image:
+    repository: rediscommander/redis-commander
+    version: "latest"
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# --------------------------- [END] redis commander -------------------------- #

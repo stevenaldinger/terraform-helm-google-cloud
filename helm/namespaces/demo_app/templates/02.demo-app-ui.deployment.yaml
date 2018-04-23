@@ -1,0 +1,50 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "gui.fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.gui.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.gui.labels.tier }}
+spec:
+  replicas: {{ .Values.gui.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.gui.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.gui.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.gui.rollingUpdate.maxUnavailable }}
+  minReadySeconds: 5
+  template:
+    metadata:
+      name: {{ template "gui.fullname" . }}
+      labels:
+        app: {{ template "name" . }}
+        component: {{ .Values.gui.name }}
+        release: {{ .Release.Name }}
+        tier: {{ .Values.gui.labels.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.gui.name }}
+        command: ["npm","run","start-prod"]
+        image: "{{ .Values.gui.image.repository }}:{{ .Values.gui.image.version }}"
+        imagePullPolicy: {{ .Values.gui.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.gui.internalPortHTTP }}
+          name: http
+          protocol: TCP
+        env:
+        # - name: SECRET_FOR_LATER
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: {{ template "gui.fullname" . }}
+        #       key: secret-login
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "gui.fullname" . }}
+              key: node-env

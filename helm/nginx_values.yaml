@@ -1,0 +1,12 @@
+# Values for "nginx" namespace in k8s cluster.
+
+# ------------------------ [START] nginx configuration ----------------------- #
+nginx:
+  name: nginx
+  namespace: nginx
+  service:
+    loadBalancerIP: 35.185.67.xxx
+  image:
+    repository: gcr.io/steven-aldinger/demo-app/nginx
+    version: 0.0.1
+# ------------------------- [END] nginx configuration ------------------------ #

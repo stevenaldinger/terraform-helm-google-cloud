@@ -1,0 +1,54 @@
+# tools values
+
+# --------------------- [START] api server configuration --------------------- #
+adminer:
+  name: adminer
+  replicaCount: 1
+  labels:
+    tier: tools
+  externalPortHTTP: "8080"
+  internalPortHTTP: "8080"
+  service:
+    type: ClusterIP
+  env:
+    dbUsername: admin
+    dbPassword: my-sensitive-password!
+    dbName: demo-app-db
+    dbInstanceConnection: "steven-aldinger:demo_app=tcp:3306"
+    adminerDesign: nette
+    gcpProject: steven-aldinger
+  image:
+    repository: adminer
+    version: "4.3.1-standalone"
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# ---------------------- [END] api server configuration ---------------------- #
+
+# --------------------- [START] grpc server configuration -------------------- #
+rediscommander:
+  name: rediscommander
+  replicaCount: 1
+  labels:
+    tier: frontend
+  externalPortHTTP: "8081"
+  internalPortHTTP: "8081"
+  service:
+    type: ClusterIP
+  env:
+    redisHosts: instance1:redis.cache:6379
+  image:
+    repository: rediscommander/redis-commander
+    version: "latest"
+    pullPolicy: IfNotPresent
+  # progressDeadlineSeconds: 60
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+    readinessProbe: false
+    livelinessProbe: false
+# ---------------------- [END] grpc server configuration --------------------- #

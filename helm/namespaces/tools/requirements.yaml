@@ -1,0 +1,10 @@
+# dependencies:
+# - name: common
+#   version: 20
+#   repository: https://steven-aldinger-helm.storage.googleapis.com/
+
+# requirements.yaml
+dependencies:
+- name: common
+  version: 0.0.2
+  repository: "file://../../common/"

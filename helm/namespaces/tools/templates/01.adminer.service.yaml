@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.adminer.name }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.adminer.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    tier: {{ .Values.adminer.labels.tier }}
+spec:
+  type: {{ .Values.adminer.service.type }}
+  {{- if .Values.adminer.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.adminer.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+  - port: {{ .Values.adminer.externalPortHTTP }}
+    targetPort: {{ .Values.adminer.internalPortHTTP }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ template "name" . }}
+    component: "{{ .Values.adminer.name }}"
+    release: {{ .Release.Name }}
